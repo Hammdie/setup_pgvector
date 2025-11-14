@@ -39,7 +39,7 @@ Script speichern, z. B.:
 
 bash
 Code kopieren
-wget https://example.com/setup_pgvector.sh -O setup_pgvector.sh
+wget https://github.com/Hammdie/setup_pgvector/blob/main/setup_pgvector.sh -O setup_pgvector.sh
 chmod +x setup_pgvector.sh
 (oder einfach aus deiner Repo-Struktur auschecken und ausführbar machen)
 
