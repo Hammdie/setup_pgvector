@@ -1,75 +1,90 @@
+# pgvector Setup Script
+
+Automatisiertes Setup-Script zur Installation und Konfiguration von pgvector für PostgreSQL auf Debian/Ubuntu-Systemen.
+
 ## Funktion
 
 Das Script führt im Wesentlichen folgende Schritte aus:
 
-1. PostgreSQL-Major-Version ermitteln:
+1. **PostgreSQL-Major-Version ermitteln:**
    ```sql
    SHOW server_version;
-Passendes pgvector-Paket installieren:
+   ```
 
-bash
-Code kopieren
-sudo apt-get install -y postgresql-<PG_MAJOR>-pgvector
-Alle nicht-Template-Datenbanken abrufen:
+2. **Passendes pgvector-Paket installieren:**
+   ```bash
+   sudo apt-get install -y postgresql-<PG_MAJOR>-pgvector
+   ```
 
-sql
-Code kopieren
-SELECT datname FROM pg_database WHERE datistemplate = false;
-Für jede dieser Datenbanken:
+3. **Alle nicht-Template-Datenbanken abrufen:**
+   ```sql
+   SELECT datname FROM pg_database WHERE datistemplate = false;
+   ```
 
-CREATE EXTENSION IF NOT EXISTS vector;
+4. **Für jede dieser Datenbanken:**
+   - Extension erstellen:
+     ```sql
+     CREATE EXTENSION IF NOT EXISTS vector;
+     ```
+   - Falls die angegebene Rolle existiert:
+     ```sql
+     GRANT USAGE ON SCHEMA public TO <ROLLE>;
+     ```
 
-Falls die angegebene Rolle existiert: GRANT USAGE ON SCHEMA public TO <ROLLE>;
+> **Hinweis:** Es wird kein `ALTER EXTENSION ... OWNER TO ...` verwendet, da Extensions keinen Owner im klassischen Sinne besitzen und dieser Befehl zu einem Syntaxfehler führt.
 
-Es wird kein ALTER EXTENSION ... OWNER TO ... verwendet, da Extensions keinen Owner im klassischen Sinne besitzen und dieser Befehl zu einem Syntaxfehler führt.
+## Voraussetzungen
 
-Voraussetzungen
-Debian-/Ubuntu-basiertes System mit apt
+- Debian-/Ubuntu-basiertes System mit `apt`
+- Installierter und laufender PostgreSQL-Server
+- Zugriff als `root` oder ein User mit `sudo`-Rechten
+- `psql` muss verfügbar sein
+- Zugriff auf den PostgreSQL-Superuser `postgres` (via `sudo -u postgres`)
 
-Installierter und laufender PostgreSQL-Server
+## Installation
 
-Zugriff als root oder ein User mit sudo-Rechten
+Script herunterladen und ausführbar machen:
 
-psql muss verfügbar sein
-
-Zugriff auf den PostgreSQL-Superuser postgres (via sudo -u postgres)
-
-Installation
-Script speichern, z. B.:
-
-bash
-Code kopieren
-wget https://github.com/Hammdie/setup_pgvector/blob/main/setup_pgvector.sh -O setup_pgvector.sh
+```bash
+wget https://raw.githubusercontent.com/Hammdie/setup_pgvector/main/setup_pgvector.sh -O setup_pgvector.sh
 chmod +x setup_pgvector.sh
-(oder einfach aus deiner Repo-Struktur auschecken und ausführbar machen)
+```
 
-Nutzung
-Standardaufruf (DB-User odoo):
+Alternativ: Aus der Repo-Struktur auschecken und ausführbar machen.
 
-bash
-Code kopieren
+## Nutzung
+
+### Standardaufruf (DB-User: `odoo`)
+
+```bash
 sudo ./setup_pgvector.sh
-oder mit explizitem Datenbank-User:
+```
 
-bash
-Code kopieren
+### Mit explizitem Datenbank-User
+
+```bash
 sudo ./setup_pgvector.sh odoo
+```
+
 oder z. B.:
 
-bash
-Code kopieren
+```bash
 sudo ./setup_pgvector.sh myappuser
-Was der Parameter macht
-Der optionale erste Parameter ist der Name der Datenbankrolle, der Schema-Usage auf public in jeder Datenbank gegeben wird, z. B.:
+```
 
-sql
-Code kopieren
+### Was der Parameter macht
+
+Der optionale erste Parameter ist der Name der Datenbankrolle, der Schema-Usage auf `public` in jeder Datenbank gegeben wird:
+
+```sql
 GRANT USAGE ON SCHEMA public TO odoo;
+```
+
 Wenn die Rolle nicht existiert, wird dieser Schritt einfach übersprungen.
 
-Beispielausgabe
-text
-Code kopieren
+## Beispielausgabe
+
+```
 >> Verwende DB-User für Rechte: odoo
 >> Erkannte PostgreSQL-Version (Major): 16
 >> Installiere pgvector-Paket ...
@@ -86,23 +101,22 @@ CREATE EXTENSION
 GRANT
 ---------------------------------------------
 >> pgvector Installation und Einrichtung abgeschlossen.
-Hinweise
-Das Script arbeitet bewusst über alle nicht-Template-Datenbanken.
-Wenn du es nur für bestimmte Datenbanken (z. B. odoo%) ausführen möchtest, kannst du die SQL-Query im Script anpassen:
+```
 
-sql
-Code kopieren
-SELECT datname
-FROM pg_database
-WHERE datistemplate = false
-  AND datname LIKE 'odoo%';
-Der Aufruf sollte nach Möglichkeit nur einmal pro Server/Installation nötig sein.
-Durch CREATE EXTENSION IF NOT EXISTS ist das Script aber idempotent und kann gefahrlos erneut ausgeführt werden.
+## Hinweise
 
-Ideal für Setups, in denen mehrere Odoo-Datenbanken auf einem PostgreSQL-Server laufen und alle pgvector nutzen sollen.
+- Das Script arbeitet bewusst über **alle nicht-Template-Datenbanken**.
+- Wenn du es nur für bestimmte Datenbanken (z. B. `odoo%`) ausführen möchtest, kannst du die SQL-Query im Script anpassen:
+  ```sql
+  SELECT datname
+  FROM pg_database
+  WHERE datistemplate = false
+    AND datname LIKE 'odoo%';
+  ```
+- Der Aufruf sollte nach Möglichkeit nur **einmal pro Server/Installation** nötig sein.
+- Durch `CREATE EXTENSION IF NOT EXISTS` ist das Script **idempotent** und kann gefahrlos erneut ausgeführt werden.
+- Ideal für Setups, in denen mehrere Odoo-Datenbanken auf einem PostgreSQL-Server laufen und alle pgvector nutzen sollen.
 
-Lizenz
+## Lizenz
+
 Nutze das Script frei in deinen Projekten. Anpassungen für eigene Zwecke sind ausdrücklich erwünscht. 🙂
-
-bash
-Code kopieren
